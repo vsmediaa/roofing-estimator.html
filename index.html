@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hako Roofing Estimator (USD)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 30px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      background-color: #ffffff;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #2e3b4e;
+      margin-bottom: 5px;
+    }
+    h2 {
+      font-size: 1.2rem;
+      font-weight: normal;
+      color: #6c757d;
+      margin-bottom: 30px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      position: relative;
+    }
+    select, input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    /* Question mark style */
+    .question-mark {
+      display: inline-block;
+      margin-left: 6px;
+      color: #888;
+      font-weight: bold;
+      cursor: help;
+      opacity: 0.4;
+      position: relative;
+      font-size: 14px;
+      user-select: none;
+      vertical-align: middle;
+    }
+    .question-mark:hover {
+      opacity: 1;
+    }
+    /* Tooltip container */
+    .tooltip {
+      visibility: hidden;
+      width: 220px;
+      background-color: #333;
+      color: #fff;
+      text-align: left;
+      border-radius: 6px;
+      padding: 8px;
+      position: absolute;
+      z-index: 10;
+      bottom: 125%;
+      left: 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 13px;
+      line-height: 1.2;
+      pointer-events: none;
+    }
+    /* Tooltip arrow */
+    .tooltip::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 10px;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: #333 transparent transparent transparent;
+    }
+    /* Show tooltip on hover */
+    .question-mark:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #results {
+      margin-top: 30px;
+      background: #f0f8f0;
+      padding: 20px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Roofing Cost Estimator</h1>
+  <h2>Estimate your roof’s square footage and cost in USD</h2>
+
+  <label>
+    Total Interior Square Footage (sqft):
+    <span class="question-mark">?
+      <span class="tooltip">Enter the total living space area inside the home in square feet.</span>
+    </span>
+    <input type="number" id="sqft" />
+  </label>
+
+  <label>
+    Number of Stories:
+    <span class="question-mark">?
+      <span class="tooltip">Select how many floors your home has.</span>
+    </span>
+    <select id="stories">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+    </select>
+  </label>
+
+  <label>
+    Roof Pitch:
+    <span class="question-mark">?
+      <span class="tooltip">Choose the steepness of your roof slope.</span>
+    </span>
+    <select id="pitch">
+      <option value="1.0">Flat (0–2/12)</option>
+      <option value="1.15">Low (3–5/12)</option>
+      <option value="1.3">Medium (6–9/12)</option>
+      <option value="1.5">Steep (10+/12)</option>
+    </select>
+  </label>
+
+  <label>
+    Roof Shape:
+    <span class="question-mark">?
+      <span class="tooltip">Select the complexity of your roof’s design.</span>
+    </span>
+    <select id="complexity">
+      <option value="1.0">Simple Rectangle</option>
+      <option value="1.1">L-Shaped or Irregular</option>
+      <option value="1.2">Complex / Multi-gabled</option>
+    </select>
+  </label>
+
+  <label>
+    Garage Included in Sqft Above?
+    <span class="question-mark">?
+      <span class="tooltip">Does your interior sqft include the garage area?</span>
+    </span>
+    <select id="garage">
+      <option value="yes" selected>Yes</option>
+      <option value="no">No</option>
+      <option value="n/a">No Garage</option>
+    </select>
+  </label>
+
+  <label>
+    Attached Covered Structures:
+    <span class="question-mark">?
+      <span class="tooltip">Select any attached porches, carports, or patios.</span>
+    </span>
+    <select id="attached">
+      <option value="0">None</option>
+      <option value="100">Covered Porch</option>
+      <option value="150">Carport</option>
+      <option value="200">Large Patio or Combo</option>
+    </select>
+  </label>
+
+  <div id="results">
+    <strong>Estimated Roof Area:</strong> <span id="roofArea">—</span> sqft<br />
+    <strong>Estimated Cost:</strong> <span id="roofCost">—</span>
+  </div>
+
+  <script>
+    const inputs = document.querySelectorAll("input, select");
+    const fixedCostPerSqft = 8; // Fixed cost per sqft in USD
+
+    function calculate() {
+      const sqft = parseFloat(document.getElementById("sqft").value) || 0;
+      const stories = parseInt(document.getElementById("stories").value);
+      const pitchFactor = parseFloat(document.getElementById("pitch").value);
+      const complexityFactor = parseFloat(document.getElementById("complexity").value);
+      const garage = document.getElementById("garage").value;
+      const attached = parseInt(document.getElementById("attached").value);
+
+      // Base roof area adjusted by stories
+      let baseRoofArea = stories === 1 ? sqft : sqft / stories;
+
+      // Add average garage roof area if garage not included and garage exists
+      if (garage === "no") baseRoofArea += 400;
+
+      let estimatedRoofArea = baseRoofArea * pitchFactor * complexityFactor + attached;
+      let cost = estimatedRoofArea * fixedCostPerSqft;
+
+      document.getElementById("roofArea").innerText = estimatedRoofArea.toFixed(0);
+      document.getElementById("roofCost").innerText = `$${cost.toFixed(2)} USD`;
+    }
+
+    inputs.forEach((input) => input.addEventListener("input", calculate));
+  </script>
+</body>
+</html>
